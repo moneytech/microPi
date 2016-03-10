@@ -38,8 +38,6 @@ atag_init(
 
 	// TODO
 
-	cont->init = true;
-
 exit:
 	return;
 }

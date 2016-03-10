@@ -20,6 +20,16 @@
 #include "../include/err.h"
 #include "../include/main.h"
 
+const char *KERR[] = {
+	"", 
+	"Invalid machine type", 
+	"Invalid parameter", 
+	"Undefined instruction", 
+	"Data/perfetch abort",
+	};
+
+#define KERR_STR(_TYPE_) ((_TYPE_) > KERR_MAX ? "Undefined" : KERR[_TYPE_])
+
 void 
 kern_init(
 	__inout kern_t *cont,
@@ -53,12 +63,10 @@ kern_init(
 		goto exit;
 	}
 
-	uart_init(&cont->uart, (void *) UART_BASE);
+	uart_init(&cont->uart, &cont->gpio, (void *) UART_BASE);
 	if(kerrno != KENONE) {
 		goto exit;
 	}
-
-	cont->init = true;
 
 exit:
 	return;
@@ -89,7 +97,7 @@ kern_main(
 	}
 
 exit:
-	kern_trap(&cont);
+	kern_trap(&cont, KERR_STR(kerrno));
 }
 
 void 
@@ -115,12 +123,16 @@ kern_proc(
 
 void 
 kern_trap(
-	__in const kern_t *cont
+	__in const kern_t *cont,
+	__in const char *msg
 	)
 {
 
 	if(cont) {
+
 		// TODO
+		__ref(msg);
+		// ---
 	}
 
 	for(;;);

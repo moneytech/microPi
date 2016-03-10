@@ -28,15 +28,40 @@
 extern "C" {
 #endif // __cplusplus
 
-typedef struct {
-	bool init;
-	volatile uint32_t *base;
+#ifndef uart_getc
+#define uart_getc(_CONT_) _uart_read(_CONT_)
+#endif // uart_getc
 
-	// TODO
+#ifndef uart_putc
+#define uart_putc(_CONT_, _VAL_) _uart_write(_CONT_, _VAL_)
+#endif // uart_putc
+
+#ifndef uart_puts
+#define uart_puts(_CONT_, _VAL_, _LEN_) _uart_write_mul(_CONT_, _VAL_, _LEN_)
+#endif // uart_puts
+
+typedef struct {
+	volatile uint32_t *base;
 } uart_t;
+
+uint8_t _uart_read(
+	__in const uart_t *cont
+	);
+
+void _uart_write(
+	__in const uart_t *cont,
+	__in uint8_t val
+	);
+
+void _uart_write_mul(
+	__in const uart_t *cont,
+	__in const uint8_t *val,
+	__in size_t len
+	);
 
 void uart_init(
 	__inout uart_t *cont,
+	__in const void *gpio,
 	__in volatile void *base
 	);
 

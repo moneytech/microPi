@@ -28,6 +28,8 @@ typedef enum {
 	KEFAULT, // data/prefetch abort
 } kerr_t;
 
+#define KERR_MAX KEFAULT
+
 #ifdef __cplusplus
 extern "C" {
 #endif // __cplusplus

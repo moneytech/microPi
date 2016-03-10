@@ -14,6 +14,10 @@ Changelog
 =========
 
 ###Version 0.1.1611
+*Updated: 3/9/2016*
+
+* Added UART interface (incomplete)
+
 *Updated: 3/7/2016*
 
 * Initial commit

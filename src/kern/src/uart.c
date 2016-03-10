@@ -18,13 +18,55 @@
  */
 
 #include "../include/err.h"
+#include "../include/gpio.h"
 #include "../include/mem.h"
 #include "../include/uart.h"
 
+#ifdef RPI_1
+#define UART_DR 0
+#define UART_RSRECR 1
+#define UART_FR 6
+#define UART_ILPR 8
+#define UART_IBRD 9
+#define UART_FBRD 10
+#define UART_LCRH 11
+#define UART_CR 12
+#define UART_IFLS 13
+#define UART_IMSC 14
+#define UART_RIS 15
+#define UART_MIS 16
+#define UART_ICR 17
+#define UART_DMACR 18
+#define UART_ITCR 32
+#define UART_ITIP 33
+#define UART_ITOP 34
+#define UART_TDR 35
+#define UART_PIN_RX 15
+#define UART_PIN_TX 14
+#endif // RPI_1
+
+uint8_t 
+_uart_read(
+	__in const uart_t *cont
+	)
+{
+	uint8_t res = 0;
+
+	if(!cont) {
+		kerrno = KEINVAL;
+		goto exit;
+	}
+
+	// TODO
+
+exit:
+	return res;
+}
+
 void 
-uart_init(
-	__inout uart_t *cont,
-	__in volatile void *base
+_uart_write(
+	__in const uart_t *cont,
+	__in uint8_t val
 	)
 {
 
@@ -33,12 +75,55 @@ uart_init(
 		goto exit;
 	}
 
+	// TODO
+	__ref(val);
+	// ---
+
+exit:
+	return;
+}
+
+void 
+_uart_write_mul(
+	__in const uart_t *cont,
+	__in const uint8_t *val,
+	__in size_t len
+	)
+{
+
+	if(!cont || !val || !len) {
+		kerrno = KEINVAL;
+		goto exit;
+	}
+
+	// TODO
+	__ref(val);
+	__ref(len);
+	// ---
+
+exit:
+	return;
+}
+
+void 
+uart_init(
+	__inout uart_t *cont,
+	__in const void *gpio,
+	__in volatile void *base
+	)
+{
+
+	if(!cont || !gpio) {
+		kerrno = KEINVAL;
+		goto exit;
+	}
+
 	mem_set(cont, 0, sizeof(uart_t));
 	cont->base = base;
 
+#ifdef RPI_1
 	// TODO
-
-	cont->init = true;
+#endif // RPI_1	
 
 exit:
 	return;
@@ -54,8 +139,6 @@ uart_uninit(
 		kerrno = KEINVAL;
 		goto exit;
 	}
-
-	// TODO
 
 	mem_set(cont, 0, sizeof(uart_t));
 

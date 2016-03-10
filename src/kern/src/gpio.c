@@ -17,6 +17,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "../include/delay.h"
 #include "../include/gpio.h"
 #include "../include/err.h"
 #include "../include/mem.h"
@@ -52,13 +53,14 @@
 #define GPIO_GPPUDCLK0 38
 #define GPIO_GPPUDCLK1 39
 #define GPIO_PIN_MAX 53
+#define GPIO_PUB_DELAY 150
 #define GPIO_SEL_CAP 10
 #define GPIO_SEL_OFF 3
 #endif // RPI_1
 
 void 
 _gpio_pin_check(
-	__in gpio_t *cont,
+	__in const gpio_t *cont,
 	__in uint32_t pin,
 	__out bool *val
 	)
@@ -86,7 +88,7 @@ exit:
 
 void 
 _gpio_pin_clear(
-	__in gpio_t *cont,
+	__in const gpio_t *cont,
 	__in uint32_t pin
 	)
 {
@@ -110,7 +112,7 @@ exit:
 
 void 
 _gpio_pin_config(
-	__in gpio_t *cont,
+	__in const gpio_t *cont,
 	__in uint32_t pin,
 	__in gpio_pin_t type
 	)
@@ -134,8 +136,130 @@ exit:
 }
 
 void 
+_gpio_pin_config_evt(
+	__in const gpio_t *cont,
+	__in uint32_t pin,
+	__in gpio_evt_t type
+	)
+{
+
+	if(!cont || (pin > GPIO_PIN_MAX)) {
+		kerrno = KEINVAL;
+		goto exit;
+	}
+
+#ifdef RPI_1
+	if(type & GPIO_EVT_ASYNC_FALL) {
+		reg_bit_set(cont->base + ((pin >= WORD_WIDTH) ? GPIO_GPAFEN1 : GPIO_GPAFEN0), 
+			(pin >= WORD_WIDTH) ? pin - WORD_WIDTH : pin);
+	} else {
+		reg_bit_clear(cont->base + ((pin >= WORD_WIDTH) ? GPIO_GPAFEN1 : GPIO_GPAFEN0), 
+			(pin >= WORD_WIDTH) ? pin - WORD_WIDTH : pin);
+	}
+
+	if(type & GPIO_EVT_ASYNC_RISE) {
+		reg_bit_set(cont->base + ((pin >= WORD_WIDTH) ? GPIO_GPAREN1 : GPIO_GPAREN0), 
+			(pin >= WORD_WIDTH) ? pin - WORD_WIDTH : pin);
+	} else {
+		reg_bit_clear(cont->base + ((pin >= WORD_WIDTH) ? GPIO_GPAREN1 : GPIO_GPAREN0), 
+			(pin >= WORD_WIDTH) ? pin - WORD_WIDTH : pin);
+	}
+
+	if(type & GPIO_EVT_FALL) {
+		reg_bit_set(cont->base + ((pin >= WORD_WIDTH) ? GPIO_GPFEN1 : GPIO_GPFEN0), 
+			(pin >= WORD_WIDTH) ? pin - WORD_WIDTH : pin);
+	} else {
+		reg_bit_clear(cont->base + ((pin >= WORD_WIDTH) ? GPIO_GPFEN1 : GPIO_GPFEN0), 
+			(pin >= WORD_WIDTH) ? pin - WORD_WIDTH : pin);
+	}
+
+	if(type & GPIO_EVT_HIGH) {
+		reg_bit_set(cont->base + ((pin >= WORD_WIDTH) ? GPIO_GPHEN1 : GPIO_GPHEN0), 
+			(pin >= WORD_WIDTH) ? pin - WORD_WIDTH : pin);
+	} else {
+		reg_bit_clear(cont->base + ((pin >= WORD_WIDTH) ? GPIO_GPHEN1 : GPIO_GPHEN0), 
+			(pin >= WORD_WIDTH) ? pin - WORD_WIDTH : pin);
+	}
+
+	if(type & GPIO_EVT_LOW) {
+		reg_bit_set(cont->base + ((pin >= WORD_WIDTH) ? GPIO_GPLEN1 : GPIO_GPLEN0), 
+			(pin >= WORD_WIDTH) ? pin - WORD_WIDTH : pin);
+	} else {
+		reg_bit_clear(cont->base + ((pin >= WORD_WIDTH) ? GPIO_GPLEN1 : GPIO_GPLEN0), 
+			(pin >= WORD_WIDTH) ? pin - WORD_WIDTH : pin);
+	}
+
+	if(type & GPIO_EVT_RISE) {
+		reg_bit_set(cont->base + ((pin >= WORD_WIDTH) ? GPIO_GPREN1 : GPIO_GPREN0), 
+			(pin >= WORD_WIDTH) ? pin - WORD_WIDTH : pin);
+	} else {
+		reg_bit_clear(cont->base + ((pin >= WORD_WIDTH) ? GPIO_GPREN1 : GPIO_GPREN0), 
+			(pin >= WORD_WIDTH) ? pin - WORD_WIDTH : pin);
+	}
+#endif // RPI_1
+
+exit:
+	return;
+}
+
+void 
+_gpio_pin_config_pud(
+	__in const gpio_t *cont,
+	__in uint32_t pin,
+	__in gpio_pud_t type
+	)
+{
+
+	if(!cont || (pin > GPIO_PIN_MAX) || (type > GPIO_PUD_MAX)) {
+		kerrno = KEINVAL;
+		goto exit;
+	}
+
+#ifdef RPI_1
+	reg_bit_set(cont->base + GPIO_GPPUD, type);
+	delay(GPIO_PUB_DELAY);
+
+	if(pin >= WORD_WIDTH) {
+		reg_bit_set(cont->base + GPIO_GPPUDCLK1, pin - WORD_WIDTH);
+	} else {
+		reg_bit_set(cont->base + GPIO_GPPUDCLK0, pin);
+	}
+
+	delay(GPIO_PUB_DELAY);
+#endif // RPI_1
+
+exit:
+	return;
+}
+
+bool 
+_gpio_pin_poll(
+	__in const gpio_t *cont,
+	__in uint32_t pin
+	)
+{
+	bool res = false;
+
+	if(!cont || (pin > GPIO_PIN_MAX)) {
+		kerrno = KEINVAL;
+		goto exit;
+	}
+
+#ifdef RPI_1
+	if(pin >= WORD_WIDTH) {
+		res = reg_bit_check(cont->base + GPIO_GPEDS1, pin - WORD_WIDTH);
+	} else {
+		res = reg_bit_check(cont->base + GPIO_GPEDS0, pin);
+	}
+#endif // RPI_1
+
+exit:
+	return res;
+}
+
+void 
 _gpio_pin_set(
-	__in gpio_t *cont,
+	__in const gpio_t *cont,
 	__in uint32_t pin
 	)
 {
@@ -206,8 +330,6 @@ gpio_init(
 	reg_write(addr + GPIO_GPPUDCLK0, 0);
 	reg_write(addr + GPIO_GPPUDCLK1, 0);
 #endif // RPI_1
-
-	cont->init = true;
 
 exit:
 	return;

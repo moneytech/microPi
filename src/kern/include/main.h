@@ -31,7 +31,6 @@ extern "C" {
 #endif // __cplusplus
 
 typedef struct {
-	bool init;
 	uint32_t dev;
 	uint32_t mach;
 	atag_t atag;
@@ -57,7 +56,8 @@ void kern_proc(
 	);
 
 void kern_trap(
-	__in const kern_t *cont
+	__in const kern_t *cont,
+	__in const char *msg
 	);
 
 void kern_uninit(

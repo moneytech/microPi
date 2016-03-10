@@ -36,10 +36,10 @@ arch:
 	@echo '--------------------------------------------'
 	@echo 'ARCHIVING BOOT/KERNEL OBJECTS'
 	@echo '--------------------------------------------'
-	$(AR) $(AR_FLAGS) $(DIR_BUILD)kern.a $(DIR_BUILD)boot.o $(DIR_BUILD)atag.o $(DIR_BUILD)gpio.o $(DIR_BUILD)main.o $(DIR_BUILD)mem.o \
-		$(DIR_BUILD)uart.o
+	$(AR) $(AR_FLAGS) $(DIR_BUILD)kern.a $(DIR_BUILD)boot.o $(DIR_BUILD)atag.o $(DIR_BUILD)delay.o $(DIR_BUILD)gpio.o $(DIR_BUILD)main.o \
+		$(DIR_BUILD)mem.o $(DIR_BUILD)uart.o
 
-build: build_boot boot.o build_kern atag.o gpio.o main.o mem.o uart.o arch link
+build: build_boot boot.o build_kern atag.o delay.o gpio.o main.o mem.o uart.o arch link
 
 build_boot:
 	@echo ''
@@ -71,6 +71,9 @@ boot.o: $(DIR_BOOT)boot.s
 
 atag.o: $(DIR_SRC)atag.c $(DIR_INC)atag.h
 	$(CC) $(CC_FLAGS_KERN) -c $(DIR_SRC)atag.c -o $(DIR_BUILD)atag.o
+
+delay.o: $(DIR_SRC)delay.c $(DIR_INC)delay.h
+	$(CC) $(CC_FLAGS_KERN) -c $(DIR_SRC)delay.c -o $(DIR_BUILD)delay.o
 
 gpio.o: $(DIR_SRC)gpio.c $(DIR_INC)gpio.h
 	$(CC) $(CC_FLAGS_KERN) -c $(DIR_SRC)gpio.c -o $(DIR_BUILD)gpio.o

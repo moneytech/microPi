@@ -40,6 +40,18 @@ extern "C" {
 #define pin_config(_CONT_, _PIN_, _TYPE_) _gpio_pin_config(&(_CONT_)->gpio, _PIN_, _TYPE_)
 #endif // pin_config
 
+#ifndef pin_config_evt
+#define pin_config_evt(_CONT_, _PIN_, _TYPE_) _gpio_pin_config_evt(_CONT_, _PIN_, _TYPE_)
+#endif // pin_config_evt
+
+#ifndef pin_config_pud
+#define pin_config_pud(_CONT_, _PIN_, _TYPE_) _gpio_pin_config_pud(_CONT_, _PIN_, _TYPE_)
+#endif // pin_config_pud
+
+#ifndef pin_poll
+#define pin_poll(_CONT_, _PIN_) _gpio_pin_poll(_CONT_, _PIN_)
+#endif // pin_poll
+
 #ifndef pin_set
 #define pin_set(_CONT_, _PIN_) _gpio_pin_set(&(_CONT_)->gpio, _PIN_)
 #endif // pin_set
@@ -49,30 +61,63 @@ typedef enum {
 	GPIO_PIN_OUTPUT,
 } gpio_pin_t;
 
+typedef enum {
+	GPIO_EVT_ASYNC_FALL = 0x01,
+	GPIO_EVT_ASYNC_RISE = 0x02,
+	GPIO_EVT_FALL = 0x04,
+	GPIO_EVT_HIGH = 0x08,
+	GPIO_EVT_LOW = 0x10,
+	GPIO_EVT_RISE = 0x20,
+} gpio_evt_t;
+
+typedef enum {
+	GPIO_PUD_DISABLE = 0,
+	GPIO_PUD_DOWN,
+	GPIO_PUD_UP,
+} gpio_pud_t;
+
+#define GPIO_PUD_MAX GPIO_PUD_UP
+
 typedef struct {
-	bool init;
 	volatile uint32_t *base;
 } gpio_t;
 
 void _gpio_pin_check(
-	__in gpio_t *cont,
+	__in const gpio_t *cont,
 	__in uint32_t pin,
 	__out bool *val
 	);
 
 void _gpio_pin_clear(
-	__in gpio_t *cont,
+	__in const gpio_t *cont,
 	__in uint32_t pin
 	);
 
 void _gpio_pin_config(
-	__in gpio_t *cont,
+	__in const gpio_t *cont,
 	__in uint32_t pin,
 	__in gpio_pin_t type
 	);
 
+void _gpio_pin_config_evt(
+	__in const gpio_t *cont,
+	__in uint32_t pin,
+	__in gpio_evt_t type
+	);
+
+void _gpio_pin_config_pud(
+	__in const gpio_t *cont,
+	__in uint32_t pin,
+	__in gpio_pud_t type
+	);
+
+bool _gpio_pin_poll(
+	__in const gpio_t *cont,
+	__in uint32_t pin
+	);
+
 void _gpio_pin_set(
-	__in gpio_t *cont,
+	__in const gpio_t *cont,
 	__in uint32_t pin
 	);
 
